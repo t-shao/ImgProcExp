@@ -56,5 +56,4 @@ def add_salt_pepper_noise(image, prob=0.01):
 
     return new
 
-
-
+# TODO: binarization (thresholding and half-tone)

@@ -22,6 +22,6 @@ if __name__ == '__main__':
     # img_w_gn.show()
     # img_w_spn = ImageOps.add_salt_pepper_noise(img)
     # img_w_spn.show()
-    dft = Transform.DFT2D(img_se)
-    plt.imshow(abs(dft))
+    img_freq = Transform.dft2(img_se)
+    plt.imshow(abs(img_freq))
     plt.show()

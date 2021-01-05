@@ -66,9 +66,11 @@ class Image:
         new.info = self.info.copy()
         return new
 
+    # TODO: further test needed
     def copy(self):
         return self._new(self.im)
 
+    # TODO: not fully functional yet
     def convert(self, mode=None):
         if mode == self.mode:
             return
@@ -115,6 +117,7 @@ class Image:
 
         return tuple(self.im[y, x])
 
+    # TODO: sanity check
     def crop(self, box=None):
         if box is None:
             return self.copy()

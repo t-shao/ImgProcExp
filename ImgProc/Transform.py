@@ -3,22 +3,31 @@ import cmath
 from . import Image
 
 
-def DFT2D(image):
+# TODO: to be tested furthers
+def dft2(image):
     if not isinstance(image, Image.Image):
         raise TypeError
     if image.mode is not Image.COLOR_L:
         raise ValueError
     im = image.im
-    M, N = image.size  # (img x, img y)
+    h, w = image.size
 
-    dft2d = np.zeros((M, N), dtype=complex)
-    for k in range(M):
-        for l in range(N):
+    im_freq = np.zeros((h, w), dtype=complex)
+    for k in range(h):
+        for l in range(w):
             sum_matrix = 0.0
-            for m in range(M):
-                for n in range(N):
-                    e = cmath.exp(- 2j * np.pi * ((k * m) / M + (l * n) / N))
+            for m in range(h):
+                for n in range(w):
+                    e = cmath.exp(- 2j * np.pi * ((k * m) / h + (l * n) / w))
                     sum_matrix += im[m, n] * e
-            dft2d[k, l] = sum_matrix
+            im_freq[k, l] = sum_matrix
 
-    return dft2d
+    return im_freq
+
+# TODO: idft2
+
+# TODO: fft2 & ifft2
+
+# TODO: dct2 & idct2
+
+# TODO: dwt & idwt
