@@ -154,7 +154,7 @@ def bytes_to_int(bytes, byteorder='little'):
 
 
 if __name__ == "__main__":
-    bmp = Bmp.from_file('data/zebra.bmp')
+    bmp = Bmp.from_file('../data/zebra.bmp')
     bmp.save('processed.bmp')
     #x, y = map(int, input("enter coord: ").split())
     #pix = bmp.get_pixel(x, y)
