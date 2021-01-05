@@ -58,16 +58,16 @@ class Image:
     def size(self):
         return self._size
 
-    def copy(self):
+    def _new(self, im):
         new = Image()
-
-        new.im = self.im
+        new.im = im
         new.mode = self.mode
-        new._size = self._size
-        new.info = self.info
-        new.readonly = self.readonly
-
+        new._size = im.shape
+        new.info = self.info.copy()
         return new
+
+    def copy(self):
+        return self._new(self.im)
 
     def convert(self, mode=None):
         if mode == self.mode:
@@ -114,6 +114,15 @@ class Image:
             raise ValueError('Coordinate out of range!')
 
         return tuple(self.im[y, x])
+
+    def crop(self, box=None):
+        if box is None:
+            return self.copy()
+
+        x0, y0, x1, y1 = map(int, map(round, box))
+        im = self.im[y0:y1, x0:x1]
+
+        return self._new(im)
 
     def histogram(self):
         tmp = self.copy()
