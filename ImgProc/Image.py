@@ -40,10 +40,10 @@ CLR_CVT_TO_RGB = {
 
 class Image:
     def __init__(self):
-        self.im = None
-        self.mode = None
+        self.im = None          # image data array
+        self.mode = None        # color mode
         self._size = (0, 0)
-        self.info = {}
+        self.info = {}          # additional information
         self.readonly = 0
 
     @property
@@ -117,17 +117,32 @@ class Image:
 
         return tuple(self.im[y, x])
 
-    # TODO: sanity check
     def crop(self, box=None):
+        """
+        Returns a rectangular region from this image. The box is a
+        4-tuple defining the left, upper, right, and lower pixel
+        coordinate.
+
+        :param box: the crop rectangle, as a (left, upper, right, lower)-tuple
+        :returns: a new Image object
+        """
         if box is None:
             return self.copy()
 
         x0, y0, x1, y1 = map(int, map(round, box))
+        if not (0 <= x0 < x1 < self.width and 0 <= y0 < y1 < self.height):
+            raise ValueError
+
         im = self.im[y0:y1, x0:x1]
 
         return self._new(im)
 
     def histogram(self):
+        """
+        Calculate the histogram of the Image on luminance.
+
+        :return: histogram array with 256 bins
+        """
         tmp = self.copy()
         tmp.convert(COLOR_L)
 
@@ -157,7 +172,17 @@ class Image:
 
 
 def from_array(im, mode=COLOR_UNDEF):
-    assert isinstance(im, np.ndarray) and im.ndim == 3 and im.shape[2] in [1, 3]
+    """
+    Construct an Image object from numpy ndarray.
+
+    :param im: ndarray with 3 dims (H, W, C)
+    :param mode: color mode
+    :return: an Image object
+    """
+    if not isinstance(im, np.ndarray):
+        raise TypeError
+    if not (im.ndim == 3 and im.shape[2] in [1, 3]):
+        return ValueError
 
     new = Image()
     new.im = im
@@ -171,7 +196,15 @@ def from_array(im, mode=COLOR_UNDEF):
 
 
 def from_bmp(bmp, mode=COLOR_UNDEF):
-    assert isinstance(bmp, Bmp)
+    """
+    Construct an Image object from Bmp object.
+
+    :param bmp: a Bmp object
+    :param mode: color mode
+    :return: an Image object
+    """
+    if not isinstance(bmp, Bmp):
+        raise TypeError
 
     im = bmp.to_array()
 
@@ -179,6 +212,13 @@ def from_bmp(bmp, mode=COLOR_UNDEF):
 
 
 def from_bmp_file(filename, mode=COLOR_UNDEF):
+    """
+    Consturct an Image object from .bmp file.
+
+    :param filename: name (path) of the .bmp file to read
+    :param mode: color mode
+    :return: an Image object
+    """
     bmp = Bmp.from_file(filename)
 
     return from_bmp(bmp, mode)
