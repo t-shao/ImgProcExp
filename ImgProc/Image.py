@@ -5,6 +5,7 @@ from .bmp import Bmp
 
 # color modes
 COLOR_UNDEF = None
+COLOR_1 = '1'
 COLOR_L = 'L'
 COLOR_RGB = 'RGB'
 COLOR_YCbCr = 'YCbCr'
@@ -99,7 +100,7 @@ class Image:
     def show(self):
         # plt.imshow(self.im)
         # plt.show()
-        if self.mode not in [COLOR_L, COLOR_RGB, COLOR_YCbCr]:
+        if self.mode not in [COLOR_1, COLOR_L, COLOR_RGB, COLOR_YCbCr]:
             raise NotImplementedError
 
         img_pil = PILImage.fromarray(self.im, self.mode)

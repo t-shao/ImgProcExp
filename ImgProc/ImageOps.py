@@ -56,4 +56,21 @@ def add_salt_pepper_noise(image, prob=0.01):
 
     return new
 
+
 # TODO: binarization (thresholding and half-tone)
+def thresholing_binarize(image, threshold):
+    if not isinstance(image, Image.Image):
+        raise TypeError
+
+    im = image.im
+    new = image.copy()
+    new_im = np.zeros_like(im, dtype=bool)
+    new.mode = Image.COLOR_1
+
+    for i in range(im.shape[0]):
+        for j in range(im.shape[1]):
+            new_im[i, j] = True if im[i, j] >= threshold else False
+
+    new.im = new_im
+
+    return new

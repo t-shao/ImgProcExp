@@ -20,6 +20,11 @@ if __name__ == '__main__':
     img.convert(Image.COLOR_L)
     img.show()
 
+    '''binarize by thresholding'''
+    img_bin = ImageOps.thresholing_binarize(img, 200)
+    plt.imshow(img_bin.im)
+    plt.show()
+
     '''crop into a patch'''
     # img_se = img.crop((0, 0, 32, 32))
     # img_se.show()
@@ -49,9 +54,9 @@ if __name__ == '__main__':
     # img_dn_mean.show()
 
     '''apply the sobel operator'''
-    sobel_v = ImageFilter.Sobel('v')
-    img_sobel_v = sobel_v.filter(img)
-    img_sobel_v.show()
+    # sobel_v = ImageFilter.Sobel('v')
+    # img_sobel_v = sobel_v.filter(img)
+    # img_sobel_v.show()
 
     '''apply the robert operator'''
     # robert_45 = ImageFilter.Robert(45)
@@ -59,9 +64,9 @@ if __name__ == '__main__':
     # img_rob.show()
 
     '''apply the laplacian operator'''
-    laplacian = ImageFilter.Laplacian()
-    img_lap = laplacian.filter(img)
-    img_lap.show()
+    # laplacian = ImageFilter.Laplacian()
+    # img_lap = laplacian.filter(img)
+    # img_lap.show()
 
     '''dft'''
     # img_freq = Transform.dft2(img_se)

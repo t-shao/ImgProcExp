@@ -3,7 +3,7 @@ import cmath
 from . import Image
 
 
-# TODO: to be tested furthers
+# TODO: to be tested further
 def dft2(image):
     if not isinstance(image, Image.Image):
         raise TypeError
