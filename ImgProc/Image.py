@@ -9,17 +9,18 @@ COLOR_1 = '1'
 COLOR_L = 'L'
 COLOR_RGB = 'RGB'
 COLOR_YCbCr = 'YCbCr'
+COLOR_CMYK = 'CMYK'
 COLOR_YIQ = 'YIQ'
 COLOR_HSI = 'HSI'
 COLOR_XYZ = 'XYZ'
 
 # color conversion matrix
 CLR_CVT_RGB2L = np.array([299, 587, 114])
-CLR_CVT_FROM_RGB = {
+CLR_CVT_FROM_RGB_W = {
     COLOR_YCbCr: np.array([
         [.299, .587, .114],
-        [-.1687, -.3313, .5],
-        [.5, -.4187, .0813]
+        [-.168736, -.331264, .5],
+        [.5, -.418688, -.081312]
     ]),
     COLOR_YIQ: np.array([
         [.299, .587, .114],
@@ -32,10 +33,36 @@ CLR_CVT_FROM_RGB = {
         [0, .01, .99]
     ])
 }
-CLR_CVT_TO_RGB = {
-    COLOR_YCbCr: np.linalg.inv(CLR_CVT_FROM_RGB[COLOR_YCbCr]),
-    COLOR_YIQ: np.linalg.inv(CLR_CVT_FROM_RGB[COLOR_YIQ]),
-    COLOR_XYZ: np.linalg.inv(CLR_CVT_FROM_RGB[COLOR_XYZ])
+CLR_CVT_FROM_RGB_B = {
+    COLOR_YCbCr: np.array([
+        0, 128, 128
+    ]),
+    COLOR_YIQ: np.array([
+        0, 0, 0
+    ]),
+    COLOR_XYZ: np.array([
+        0, 0, 0
+    ])
+}
+CLR_CVT_TO_RGB_W = {
+    COLOR_YCbCr: np.array([
+        [1, 0, 1.402],
+        [1, -.344136, -.714136],
+        [1, 1.772, 0]
+    ]),
+    COLOR_YIQ: np.linalg.inv(CLR_CVT_FROM_RGB_W[COLOR_YIQ]),
+    COLOR_XYZ: np.linalg.inv(CLR_CVT_FROM_RGB_W[COLOR_XYZ])
+}
+CLR_CVT_TO_RGB_B = {
+    COLOR_YCbCr: np.array([
+        0, 128, 128
+    ]),
+    COLOR_YIQ: np.array([
+        0, 0, 0
+    ]),
+    COLOR_XYZ: np.array([
+        0, 0, 0
+    ])
 }
 
 
@@ -67,17 +94,16 @@ class Image:
         new.info = self.info.copy()
         return new
 
-    # TODO: further test needed
     def copy(self):
         return self._new(self.im)
 
-    # TODO: not fully functional yet
+    # TODO:  YIQ, XYZ not tested yet
     def convert(self, mode=None):
         if mode == self.mode:
             return
-        if self.mode not in [COLOR_RGB, COLOR_YCbCr, COLOR_YIQ, COLOR_XYZ]:
+        if self.mode not in [COLOR_RGB, COLOR_YCbCr, COLOR_CMYK, COLOR_YIQ, COLOR_XYZ]:
             raise NotImplementedError('Current mode not supported yet.')
-        if mode not in [COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_YIQ, COLOR_XYZ]:
+        if mode not in [COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK, COLOR_YIQ, COLOR_XYZ]:
             raise NotImplementedError('Target mode not supported yet.')
 
         if self.mode is not COLOR_RGB and mode is not COLOR_RGB:
@@ -87,20 +113,32 @@ class Image:
 
         if self.mode is COLOR_RGB:
             if mode is COLOR_L:
-                self.im = np.uint8(np.dot(self.im, CLR_CVT_RGB2L.transpose()) // 1000)
+                self.im = np.dot(self.im, CLR_CVT_RGB2L.transpose().astype(np.uint8) // 1000)
+
+            elif mode is COLOR_CMYK:
+                self.im = (255 - self.im)
+                k = np.min(self.im, axis=2, keepdims=True)
+                self.im = np.uint8(self.im - k / (255 - k + 1e8))
+                self.im = np.concatenate((self.im, k), axis=2)
 
             else:
-                self.im = np.uint8(np.dot(self.im, CLR_CVT_FROM_RGB[mode].transpose()))
+                self.im = np.uint8(np.dot(self.im, CLR_CVT_FROM_RGB_W[mode].transpose()) + CLR_CVT_FROM_RGB_B[mode])
 
         else:
-            self.im = np.uint8(np.dot(self.im, CLR_CVT_TO_RGB[self.mode].transpose()))
+            if self.mode is COLOR_CMYK:
+                self.im = self.im / 255
+                k = self.im[:, :, 3:]
+                self.im = np.uint8((1.0 - self.im[:, :, :3]) * (1.0 - k) * 255)
+
+            else:
+                self.im = np.uint8(np.dot(self.im - CLR_CVT_TO_RGB_B[self.mode], CLR_CVT_TO_RGB_W[self.mode].transpose()) )
 
         self.mode = mode
 
     def show(self):
         # plt.imshow(self.im)
         # plt.show()
-        if self.mode not in [COLOR_1, COLOR_L, COLOR_RGB, COLOR_YCbCr]:
+        if self.mode not in [COLOR_1, COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK]:
             raise NotImplementedError
 
         img_pil = PILImage.fromarray(self.im, self.mode)

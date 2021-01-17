@@ -5,7 +5,7 @@ from ImgProc import Image, ImageOps, ImageFilter, Transform
 
 if __name__ == '__main__':
     '''read file'''
-    filename = "data/img_100.bmp"
+    filename = "data/lena.bmp"
     img = Image.from_bmp_file(filename)
 
     '''show the image'''
@@ -13,17 +13,29 @@ if __name__ == '__main__':
     # plt.show()
     # img.show()
 
-    ''' get pixel '''
+    '''get pixel'''
     # print(img.get_pixel((0, 0)))
 
-    '''convert to monochrome'''
-    img.convert(Image.COLOR_L)
+    '''convert to YCbCr and back to RGB'''
+    # img.convert(Image.COLOR_YCbCr)
+    # img.show()
+    # img.convert(Image.COLOR_RGB)
+    # img.show()
+
+    '''convert to CMYK and back to RGB'''
+    img.convert(Image.COLOR_CMYK)
+    img.show()
+    img.convert(Image.COLOR_RGB)
     img.show()
 
+    '''convert to monochrome'''
+    # img.convert(Image.COLOR_L)
+    # img.show()
+
     '''binarize by thresholding'''
-    img_bin = ImageOps.thresholing_binarize(img, 200)
-    plt.imshow(img_bin.im)
-    plt.show()
+    # img_bin = ImageOps.thresholing_binarize(img, 200)
+    # plt.imshow(img_bin.im)
+    # plt.show()
 
     '''crop into a patch'''
     # img_se = img.crop((0, 0, 32, 32))

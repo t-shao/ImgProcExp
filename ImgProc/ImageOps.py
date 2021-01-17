@@ -74,3 +74,4 @@ def thresholing_binarize(image, threshold):
     new.im = new_im
 
     return new
+
