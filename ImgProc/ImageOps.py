@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import pywt
 from scipy.ndimage import gaussian_filter
 from scipy.ndimage.interpolation import rotate
 
@@ -25,6 +26,23 @@ def equalize(image):
 
     # mapping
     new.im = hists_cdf[im]
+
+    return new
+
+
+def normalize(image, min_max=(0, 255)):
+    if not isinstance(image, Image.Image):
+        raise TypeError
+
+    h, w = image.size
+    im = image.im
+    pix_min, pix_max = np.amin(im), np.amax(im)
+    tar_min, tar_max = min_max[0], min_max[1]
+
+    new_im = np.uint8((tar_max - tar_min) / (pix_max - pix_min) * (im - pix_min) + tar_min)
+
+    new = image.copy()
+    new.im = new_im
 
     return new
 
@@ -57,6 +75,23 @@ def add_salt_pepper_noise(image, prob=0.01):
             elif rand > thres:
                 im[i][j] = 255
     new.im = im
+
+    return new
+
+
+def dwt_denoise(image):
+    if not isinstance(image, Image.Image):
+        raise TypeError
+
+    new = image.convert(Image.COLOR_L)
+
+    coeffs = pywt.wavedec2(new.im, 'db1', level=2)
+    ths = [23.38, 10.12]
+
+    for i in range(1, len(coeffs)):
+        coeffs[i] = tuple([pywt.threshold(v, ths[i - 1], 'hard') for v in coeffs[i]])
+
+    new.im = np.uint8(pywt.waverec2(coeffs, 'db1'))
 
     return new
 
@@ -120,7 +155,6 @@ def _gauss_kernel(size, sigma=None, size_y=None, sigma_y=None):
     return g / g.sum()
 
 
-# TODO: binarization (thresholding and half-tone)
 def thresholing_binarize(image, threshold):
     if not isinstance(image, Image.Image):
         raise TypeError
@@ -139,7 +173,38 @@ def thresholing_binarize(image, threshold):
     return new
 
 
-# TODO: binarization of monochrome images by half-tone not working yet
+def half_toning_binarize(image):
+    if not isinstance(image, Image.Image):
+        raise TypeError
+
+    m = np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                  [[0, 1, 0], [0, 0, 0], [0, 0, 0]],
+                  [[0, 1, 0], [0, 0, 0], [0, 0, 1]],
+                  [[1, 1, 0], [0, 0, 0], [0, 0, 1]],
+                  [[1, 1, 0], [0, 0, 0], [1, 0, 1]],
+                  [[1, 1, 1], [0, 0, 0], [1, 0, 1]],
+                  [[1, 1, 1], [0, 0, 1], [1, 0, 1]],
+                  [[1, 1, 1], [0, 0, 1], [1, 1, 1]],
+                  [[1, 1, 1], [1, 0, 1], [1, 1, 1]],
+                  [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]) * 256
+
+    im = image.convert(Image.COLOR_L).im
+    h, w = im.shape
+    new_im = np.zeros((3 * h, 3 * w), dtype=np.bool_)
+    step = int(np.ceil(256 / 10))
+    img_ten = np.fix(im / step).astype(np.uint8)
+
+    for i in range(h):
+        for j in range(w):
+            gray_level = img_ten[i, j]
+            new_im[3 * i:3 * (i + 1), 3 * j:3 * (j + 1)] = m[gray_level]
+
+    new = Image.from_array(new_im)
+    new.mode = Image.COLOR_1
+
+    return new
+
+
 def half_tone(image, size, angles, fill, sharpness):
     if not isinstance(image, Image.Image):
         raise TypeError

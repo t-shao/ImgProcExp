@@ -92,7 +92,6 @@ def reconstruct_from_magnitude_or_phase(im_freq, show_result=False):
     return im_from_mag, im_from_pha
 
 
-# TODO: dct2 & idct2
 def dct_matrix(n):
     dct_mat = np.zeros((n, n))
     for j in range(n):
@@ -197,10 +196,10 @@ def idct2(im_freq, patch_size=8, top_k=1, show_result=False):
 
 def test_dft(image):
     # convert to monochrome
-    image.convert(Image.COLOR_L)
+    img_l = image.convert(Image.COLOR_L)
 
     # do dft and show the magnitude and phase
-    im = image.im
+    im = img_l.im
     im_freq = dft2(im, print_time=True)
     get_magnitude_and_phase(im_freq, show_result=True)
 
@@ -210,10 +209,10 @@ def test_dft(image):
 
 def test_dct(image):
     # convert to monochrome
-    image.convert(Image.COLOR_L)
+    img_l = image.convert(Image.COLOR_L)
 
     # do dct and show dct basis
-    im = image.im
+    im = img_l.im
     im_freq = dct2(im)
     show_dct_basis()
 

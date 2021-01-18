@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image as PILImage
 from matplotlib import pyplot as plt
 
-from .bmp import Bmp
+from .Bmp import Bmp
 
 # color modes
 COLOR_UNDEF = None
@@ -98,52 +98,72 @@ class Image:
     def copy(self):
         return self._new(self.im)
 
-    # TODO: YIQ, XYZ not tested yet
+    # TODO: YIQ, XYZ, HSI not fully tested yet
     def convert(self, mode=None):
         if mode == self.mode:
-            return
+            return self.copy()
         if self.mode not in [COLOR_RGB, COLOR_YCbCr, COLOR_CMYK, COLOR_YIQ, COLOR_XYZ]:
             raise NotImplementedError('Current mode not supported yet.')
-        if mode not in [COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK, COLOR_YIQ, COLOR_XYZ]:
+        if mode not in [COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK, COLOR_YIQ, COLOR_XYZ, COLOR_HSI]:
             raise NotImplementedError('Target mode not supported yet.')
 
         if self.mode is not COLOR_RGB and mode is not COLOR_RGB:
-            self.convert(COLOR_RGB)
-            self.convert(mode)
-            return
+            tmp = self.convert(COLOR_RGB)
+            return tmp.convert(mode)
+
+        new_im = np.zeros_like(self.im)
 
         if self.mode is COLOR_RGB:
             if mode is COLOR_L:
-                self.im = np.dot(self.im, CLR_CVT_RGB2L.transpose() / 1000).astype(np.uint8)
+                new_im = np.dot(self.im, CLR_CVT_RGB2L.transpose() / 1000).astype(np.uint8)
 
             elif mode is COLOR_CMYK:
-                self.im = (255 - self.im)
-                k = np.min(self.im, axis=2, keepdims=True)
-                self.im = np.uint8(self.im - k / (255 - k + 1e8))
-                self.im = np.concatenate((self.im, k), axis=2)
+                new_im = (255 - self.im)
+                k = np.min(new_im, axis=2, keepdims=True)
+                new_im = np.uint8(new_im - k / (255 - k + 1e8))
+                new_im = np.concatenate((new_im, k), axis=2)
+
+            elif mode is COLOR_HSI:
+                new_im = new_im.astype(np.float64)
+                for i in range(self.height):
+                    for j in range(self.width):
+                        r, g, b = self.im[i, j, 0] / 255, self.im[i, j, 1] / 255, self.im[i, j, 2] / 255
+                        new_im[i, j, 2] = np.mean(self.im[i, j, :])  # I channel
+                        new_im[i, j, 1] = 1 - 3.0 / np.sum(self.im[i, j, :]) * np.min(self.im[i, j, :])  # S channel
+                        new_im[i, j, 0] = np.arccos(
+                            (2 * r - g - b) / 2 / (np.sqrt((r - g) ** 2 + (r - b) * (g - b))))  # H channel
+                        if g < b:
+                            new_im[i, j, 0] = 2 * np.pi - new_im[i, j, 0]
 
             else:
-                self.im = np.uint8(np.dot(self.im, CLR_CVT_FROM_RGB_W[mode].transpose()) + CLR_CVT_FROM_RGB_B[mode])
+                new_im = np.uint8(np.dot(self.im, CLR_CVT_FROM_RGB_W[mode].transpose()) + CLR_CVT_FROM_RGB_B[mode])
 
         else:
             if self.mode is COLOR_CMYK:
-                self.im = self.im / 255
-                k = self.im[:, :, 3:]
-                self.im = np.uint8((1.0 - self.im[:, :, :3]) * (1.0 - k) * 255)
+                new_im = self.im / 255
+                k = new_im[:, :, 3:]
+                new_im = np.uint8((1.0 - new_im[:, :, :3]) * (1.0 - k) * 255)
 
             else:
-                self.im = np.uint8(np.dot(self.im - CLR_CVT_TO_RGB_B[self.mode], CLR_CVT_TO_RGB_W[self.mode].transpose()) )
+                new_im = np.uint8(np.dot(self.im - CLR_CVT_TO_RGB_B[self.mode], CLR_CVT_TO_RGB_W[self.mode].transpose()))
 
-        self.mode = mode
+        new = self._new(new_im)
+        new.mode = mode
 
-    def show(self):
-        # plt.imshow(self.im)
-        # plt.show()
-        if self.mode not in [COLOR_1, COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK]:
+        return new
+
+    def show(self, using='system'):
+        if using not in ['system', 'matplotlib']:
+            raise ValueError
+        if using == 'system' and self.mode not in [COLOR_1, COLOR_L, COLOR_RGB, COLOR_YCbCr, COLOR_CMYK]:
             raise NotImplementedError
 
-        img_pil = PILImage.fromarray(self.im, self.mode)
-        img_pil.show()
+        if using == 'system':
+            img_pil = PILImage.fromarray(self.im, self.mode)
+            img_pil.show()
+        else:
+            plt.imshow(self.im)
+            plt.show()
 
     def get_pixel(self, coord):
         x, y = coord
@@ -177,35 +197,30 @@ class Image:
 
         return self._new(im)
 
-    def histogram(self):
-        """
-        Calculate the histogram of the Image on luminance.
-
-        :return: histogram array with 256 bins
-        """
+    def histogram(self, bins=256):
         tmp = self.copy()
         tmp.convert(COLOR_L)
 
-        hist = np.zeros(256, dtype=int)
+        hist = np.zeros(bins, dtype=int)
         for i in tmp.im.flatten():
             hist[i] += 1
 
         return hist
 
-    def show_histogram(self):
+    def show_histogram(self, bins=256):
         if self.mode is COLOR_RGB:
             plt.figure("hist")
             arr_r = np.array(self.im[:, :, 0]).flatten()
-            plt.hist(arr_r, bins=256, facecolor='r', edgecolor='r', alpha=0.3)
+            plt.hist(arr_r, bins=bins, facecolor='r', edgecolor='r', alpha=0.3)
             arr_g = np.array(self.im[:, :, 1]).flatten()
-            plt.hist(arr_g, bins=256, facecolor='g', edgecolor='g', alpha=0.3)
+            plt.hist(arr_g, bins=bins, facecolor='g', edgecolor='g', alpha=0.3)
             arr_b = np.array(self.im[:, :, 2]).flatten()
-            plt.hist(arr_b, bins=256, facecolor='b', edgecolor='b', alpha=0.3)
+            plt.hist(arr_b, bins=bins, facecolor='b', edgecolor='b', alpha=0.3)
             plt.show()
         elif self.mode is COLOR_L:
             plt.figure("hist")
             arr = np.array(self.im).flatten()
-            plt.hist(arr, bins=256, alpha=1)
+            plt.hist(arr, bins=bins, alpha=1)
             plt.show()
         else:
             raise NotImplementedError
@@ -221,13 +236,13 @@ def from_array(im, mode=COLOR_UNDEF):
     """
     if not isinstance(im, np.ndarray):
         raise TypeError
-    if not (im.ndim == 3 and im.shape[2] in [1, 3]):
+    if not (im.ndim == 2 or (im.ndim == 3 and im.shape[2] in [1, 3])):
         return ValueError
 
     new = Image()
     new.im = im
     if mode is COLOR_UNDEF:
-        new.mode = COLOR_RGB if im.shape[2] == 3 else COLOR_L
+        new.mode = COLOR_RGB if im.ndim == 3 and im.shape[2] == 3 else COLOR_L
     else:
         new.mode = mode
     new._size = im.shape[:2]

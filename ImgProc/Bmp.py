@@ -67,6 +67,28 @@ class Bmp(BmpFileHeader, BmpInfoHeader):
         else:
             raise NotImplementedError("Currently only 8/24 bit per pixel are supported.")
 
+    def print_file_header(self):
+        print("File header:")
+        print("bfType: {}".format(self._bfType))
+        print("bfSize: {}".format(bytes_to_int(self._bfSize)))
+        print("bfReserved1: {}".format(bytes_to_int(self._bfReserved1)))
+        print("bfReserved2: {}".format(bytes_to_int(self._bfReserved2)))
+        print("bfOffBits: {}".format(bytes_to_int(self._bfOffBits)))
+
+    def print_info_header(self):
+        print("Info header:")
+        print("biSize: {}".format(bytes_to_int(self._biSize)))
+        print("biWidth: {}".format(bytes_to_int(self._biWidth)))
+        print("biHeight: {}".format(bytes_to_int(self._biHeight)))
+        print("biPlanes: {}".format(bytes_to_int(self._biPlanes)))
+        print("biBitCount: {}".format(bytes_to_int(self._biBitCount)))
+        print("biCompression: {}".format(bytes_to_int(self._biCompression)))
+        print("biSizeImage: {}".format(bytes_to_int(self._biSizeImage)))
+        print("biXPelsPerMeter: {}".format(bytes_to_int(self._biXPelsPerMeter)))
+        print("biYPelsPerMeter: {}".format(bytes_to_int(self._biYPelsPerMeter)))
+        print("biClrUsed: {}".format(bytes_to_int(self._biClrUsed)))
+        print("biClrImportant: {}".format(bytes_to_int(self._biClrImportant)))
+
     @staticmethod
     def from_file(filename):
         """
