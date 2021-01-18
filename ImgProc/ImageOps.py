@@ -1,9 +1,10 @@
-import numpy as np
-from scipy.ndimage.interpolation import rotate
-from scipy.ndimage import gaussian_filter
 import random
+
+import numpy as np
+from scipy.ndimage import gaussian_filter
+from scipy.ndimage.interpolation import rotate
+
 from . import Image
-from PIL import Image as PILImage, ImageDraw, ImageStat
 
 
 def equalize(image):

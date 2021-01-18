@@ -1,6 +1,7 @@
 import numpy as np
-from matplotlib import pyplot as plt
 from PIL import Image as PILImage
+from matplotlib import pyplot as plt
+
 from .bmp import Bmp
 
 # color modes
@@ -97,7 +98,7 @@ class Image:
     def copy(self):
         return self._new(self.im)
 
-    # TODO:  YIQ, XYZ not tested yet
+    # TODO: YIQ, XYZ not tested yet
     def convert(self, mode=None):
         if mode == self.mode:
             return
@@ -113,7 +114,7 @@ class Image:
 
         if self.mode is COLOR_RGB:
             if mode is COLOR_L:
-                self.im = np.dot(self.im, CLR_CVT_RGB2L.transpose().astype(np.uint8) // 1000)
+                self.im = np.dot(self.im, CLR_CVT_RGB2L.transpose() / 1000).astype(np.uint8)
 
             elif mode is COLOR_CMYK:
                 self.im = (255 - self.im)

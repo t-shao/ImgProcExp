@@ -5,13 +5,13 @@ from ImgProc import Image, ImageOps, ImageFilter, Transform
 
 if __name__ == '__main__':
     '''read file'''
-    filename = "data/lena.bmp"
+    filename = "data/zebra.bmp"
     img = Image.from_bmp_file(filename)
 
     '''show the image'''
     # plt.imshow(img.im)
     # plt.show()
-    # img.show()
+    img.show()
 
     '''get pixel'''
     # print(img.get_pixel((0, 0)))
@@ -38,9 +38,9 @@ if __name__ == '__main__':
     # plt.show()
 
     '''half-toning'''
-    img.convert(Image.COLOR_CMYK)
-    img_hf = ImageOps.half_tone(img, size=3, angles=[15, 75, 0, 45], fill=1.0, sharpness=1.0)
-    img_hf.show()
+    # img.convert(Image.COLOR_CMYK)
+    # img_hf = ImageOps.half_tone(img, size=3, angles=[15, 75, 0, 45], fill=1.0, sharpness=1.0)
+    # img_hf.show()
 
     '''crop into a patch'''
     # img_se = img.crop((0, 0, 32, 32))
@@ -86,6 +86,4 @@ if __name__ == '__main__':
     # img_lap.show()
 
     '''dft'''
-    # img_freq = Transform.dft2(img_se)
-    # plt.imshow(abs(img_freq))
-    # plt.show()
+    Transform.test_dft(img)
