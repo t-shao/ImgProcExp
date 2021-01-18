@@ -5,7 +5,7 @@ from ImgProc import Image, ImageOps, ImageFilter, Transform
 
 if __name__ == '__main__':
     '''read file'''
-    filename = "data/zebra.bmp"
+    filename = "data/lena.bmp"
     img = Image.from_bmp_file(filename)
 
     '''show the image'''
@@ -85,5 +85,6 @@ if __name__ == '__main__':
     # img_lap = laplacian.filter(img)
     # img_lap.show()
 
-    '''dft'''
-    Transform.test_dft(img)
+    '''dft & dct'''
+    # Transform.test_dft(img)
+    Transform.test_dct(img)
