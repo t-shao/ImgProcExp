@@ -23,10 +23,10 @@ if __name__ == '__main__':
     # img.show()
 
     '''convert to CMYK and back to RGB'''
-    img.convert(Image.COLOR_CMYK)
-    img.show()
-    img.convert(Image.COLOR_RGB)
-    img.show()
+    # img.convert(Image.COLOR_CMYK)
+    # img.show()
+    # img.convert(Image.COLOR_RGB)
+    # img.show()
 
     '''convert to monochrome'''
     # img.convert(Image.COLOR_L)
@@ -36,6 +36,11 @@ if __name__ == '__main__':
     # img_bin = ImageOps.thresholing_binarize(img, 200)
     # plt.imshow(img_bin.im)
     # plt.show()
+
+    '''half-toning'''
+    img.convert(Image.COLOR_CMYK)
+    img_hf = ImageOps.half_tone(img, size=3, angles=[15, 75, 0, 45], fill=1.0, sharpness=1.0)
+    img_hf.show()
 
     '''crop into a patch'''
     # img_se = img.crop((0, 0, 32, 32))
